@@ -16,7 +16,7 @@ const text = `
 const a = 3;
 const b = 4;
 const c = a + b + 5;
-const d = c - 34;
+const d = c - 35;
 
 `;
 
