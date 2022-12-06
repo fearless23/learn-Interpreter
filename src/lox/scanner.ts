@@ -13,7 +13,7 @@ export class Scanner {
 	#start: number = 0;
 	#src: string;
 
-	constructor(src = "") {
+	constructor(src: string) {
 		this.#src = src;
 	}
 

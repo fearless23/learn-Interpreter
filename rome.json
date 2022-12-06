@@ -8,6 +8,12 @@
       "correctness": {
         "noUnusedVariables": "error",
         "noUndeclaredVariables": "error"
+      },
+      "nursery": {
+        "noVar": "error",
+        "noVoidTypeReturn": "error",
+        "useConst": "error",
+        "useNumericLiterals": "error"
       }
     }
   }

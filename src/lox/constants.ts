@@ -45,6 +45,7 @@ const TOKENS = {
 	VAR: "VAR", // var
 	WHILE: "WHILE", // while
 	EOF: "EOF", //
+	// rome-ignore lint/correctness/noUndeclaredVariables: <explanation>
 } as const;
 
 const IDENTIFIERS = {
@@ -64,6 +65,7 @@ const IDENTIFIERS = {
 	true: "TRUE",
 	var: "VAR",
 	while: "WHILE",
+	// rome-ignore lint/correctness/noUndeclaredVariables: <explanation>
 } as const;
 
 const DIGIT_SET = new Set(["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]);
