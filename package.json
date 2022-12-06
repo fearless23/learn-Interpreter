@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "",
   "scripts": {
-    "start": "ts-node --esm src/lox/tokens.ts"
+    "start": "ts-node --esm src/lox/index.ts"
   },
   "keywords": [],
   "author": "",

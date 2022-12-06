@@ -1,119 +1,42 @@
-const TOKENS = {
-	// Single-character tokens.
-	LEFT_PAREN: "LEFT_PAREN", // (
-	RIGHT_PAREN: "RIGHT_PAREN", // )
-	LEFT_BRACE: "LEFT_BRACE", // [
-	RIGHT_BRACE: "RIGHT_BRACE", // ]
-	COMMA: "COMMA", // ,
-	DOT: "DOT", // .
-	MINUS: "MINUS", // -
-	PLUS: "PLUS", // +
-	SEMICOLON: "SEMICOLON", // ;
-	SLASH: "SLASH", // /
-	STAR: "STAR", // *
+import { Token } from "./token.js";
+import { TOKENS, IDENTIFIERS } from "./constants.js";
+import { is_alphabet, is_alpha_numeric, is_digit } from "./helpers.js";
+import { IToken, IError, TokenType, TokenLiteral, IIdentifierKey } from "./types.js";
 
-	// One or two character tokens.
-	BANG: "BANG", // !
-	BANG_EQUAL: "BANG_EQUAL", // !=
-	EQUAL: "EQUAL", // =
-	EQUAL_EQUAL: "EQUAL_EQUAL", // ==
-	GREATER: "GREATER", // >
-	GREATER_EQUAL: "GREATER_EQUAL", // >=
-	LESS: "LESS", // <
-	LESS_EQUAL: "LESS_EQUAL", // <=
+export class Scanner {
+	#tokens: Token[] = [];
+	#errors: IError[] = [];
 
-	// Literals
-	IDENTIFIER: "IDENTIFIER",
-	STRING: "STRING",
-	NUMBER: "NUMBER",
-
-	// Keywords
-	AND: "AND", // and
-	CLASS: "CLASS", // class
-	ELSE: "ELSE", // else
-	FALSE: "FALSE", // false
-	FUN: "FUN", // fun
-	FOR: "FOR", // for
-	IF: "IF", // if
-	NIL: "NIL", // nil
-	OR: "OR", // or
-	PRINT: "PRINT", // print
-	RETURN: "RETURN", // return
-	SUPER: "SUPER", // super
-	THIS: "THIS", // this
-	TRUE: "TRUE", // true
-	VAR: "VAR", // var
-	WHILE: "WHILE", // while
-	EOF: "EOF", //
-};
-
-const IDENTIFIERS = {
-	and: "AND",
-	class: "CLASS",
-	else: "ELSE",
-	false: "FALSE",
-	for: "FOR",
-	fun: "FUN",
-	if: "IF",
-	nil: "NIL",
-	or: "OR",
-	print: "PRINT",
-	return: "RETURN",
-	super: "SUPER",
-	this: "THIS",
-	true: "TRUE",
-	var: "VAR",
-	while: "WHILE",
-};
-
-const DIGITS = new Set(["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]);
-
-class Token {
-	constructor(type, lexeme, literal, line) {
-		this.type = type;
-		this.lexeme = lexeme;
-		this.literal = literal;
-		this.line = line;
-	}
-
-	toString() {
-		return `${this.type} ${this.lexeme} ${this.literal}`;
-	}
-}
-
-class Scanner {
-	#tokens = [];
-	#errors = [];
-	#column = 0;
-
-	#current = 0;
-	#line = 1;
-	#start = 0;
-	#src = "";
+	#column: number = 0;
+	#current: number = 0;
+	#line: number = 1;
+	#start: number = 0;
+	#src: string;
 
 	constructor(src = "") {
 		this.#src = src;
 	}
 
-	logTokens() {
-		console.log(this.#tokens, "--TOKENS--");
+	logTokens(): void {
+		console.log(
+			this.#tokens.map((i) => i.token),
+			"--TOKENS--",
+		);
 	}
 
-	logErrors() {
+	logErrors(): void {
 		console.log(this.#errors, "--ERRORS--");
 	}
 
-	#isAtEnd() {
+	#is_at_end() {
 		return this.#current >= this.#src.length;
 	}
 
-	#get_char(idx) {
+	// 1. CHAR METHODS
+	#get_char(idx: number) {
 		return this.#src.charAt(idx);
 	}
 
-	/**
-	 * Gets char at current index
-	 */
 	#get_current_char() {
 		return this.#get_char(this.#current);
 	}
@@ -122,23 +45,30 @@ class Scanner {
 		return this.#get_char(this.#current + 1);
 	}
 
+	// 2. get current token
 	#get_token() {
 		return this.#src.substring(this.#start, this.#current);
 	}
 
-	#addToken(type, literal = null) {
+	#addToken(type: TokenType, literal: TokenLiteral = null) {
 		const token_text = this.#get_token();
-		this.#tokens.push(new Token(type, token_text, literal, this.#line));
+		const itoken: IToken = {
+			type,
+			lexeme: token_text,
+			literal,
+			line: this.#line,
+		};
+		this.#tokens.push(new Token(itoken));
 	}
 
 	/**`
 	 * Checks character at current position
 	 * - If matches expected - returns true and moves to next position
 	 * - Else return false and stays at current position
-	 * @param {string} expected
+	 * @param {string} expected - character to match with
 	 */
-	#match(expected) {
-		if (this.#isAtEnd()) {
+	#match(expected: string) {
+		if (this.#is_at_end()) {
 			return false;
 		}
 		if (this.#get_current_char() !== expected) {
@@ -147,24 +77,13 @@ class Scanner {
 		this.#move();
 		return true;
 	}
-	// str.match(/[a-z]/i)
-
-	#is_alpha(c) {
-		return c.match(/[a-z]/i) || c === "_";
-	}
-
-	#is_alpha_numeric(c) {
-		return this.#is_alpha(c) || this.#is_digit(c);
-	}
 
 	/**
 	 * Find till we found the char or reach the end
 	 * - Modifies current
-	 * @param {string} char
-	 * @param {()=> void} [iter]
 	 */
-	#find_till(char, iter) {
-		while (this.#get_current_char() !== char && !this.#isAtEnd()) {
+	#find_till(char: string, iter?: () => void) {
+		while (this.#get_current_char() !== char && !this.#is_at_end()) {
 			iter?.();
 			this.#move();
 		}
@@ -174,7 +93,7 @@ class Scanner {
 	 * Keep moving till you finding numbers
 	 */
 	#find_till_numbers() {
-		while (this.#is_digit(this.#get_current_char())) {
+		while (is_digit(this.#get_current_char())) {
 			this.#move();
 		}
 	}
@@ -197,7 +116,7 @@ class Scanner {
 			}
 		};
 		this.#find_till('"', iter);
-		if (this.#isAtEnd()) {
+		if (this.#is_at_end()) {
 			this.#errors.push({ line: this.#line, column: this.#column, text: "Unterminated string." });
 			return;
 		}
@@ -210,15 +129,11 @@ class Scanner {
 		this.#addToken(TOKENS.STRING, value);
 	}
 
-	#is_digit(c) {
-		return DIGITS.has(c);
-	}
-
 	#get_number() {
 		this.#find_till_numbers();
 
 		// Look for a fractional part.
-		if (this.#get_current_char() === "." && this.#is_digit(this.#get_next_char())) {
+		if (this.#get_current_char() === "." && is_digit(this.#get_next_char())) {
 			this.#move();
 			this.#find_till_numbers();
 		}
@@ -230,15 +145,12 @@ class Scanner {
 	}
 
 	#get_reserved_keyword() {
-		while (this.#is_alpha_numeric(this.#get_current_char())) {
+		while (is_alpha_numeric(this.#get_current_char())) {
 			this.#move();
 		}
-
-		const text = this.#get_token();
-		let type = IDENTIFIERS[text] || TOKENS.IDENTIFIER;
+		const text = this.#get_token() as IIdentifierKey;
+		const type = IDENTIFIERS[text] || TOKENS.IDENTIFIER;
 		this.#addToken(type);
-		// if reserverd keyword -- we can use type to infer all info about keyword
-		// if not -- lexeme would be string value of text
 	}
 
 	#scanToken() {
@@ -254,47 +166,38 @@ class Scanner {
 				this.#addToken(TOKENS.LEFT_PAREN);
 				break;
 			}
-
 			case ")": {
 				this.#addToken(TOKENS.RIGHT_PAREN);
 				break;
 			}
-
 			case "{": {
 				this.#addToken(TOKENS.LEFT_BRACE);
 				break;
 			}
-
 			case "}": {
 				this.#addToken(TOKENS.RIGHT_BRACE);
 				break;
 			}
-
 			case ",": {
 				this.#addToken(TOKENS.COMMA);
 				break;
 			}
-
 			case ".": {
 				this.#addToken(TOKENS.DOT);
 				break;
 			}
-
 			case "-": {
 				this.#addToken(TOKENS.MINUS);
 				break;
 			}
-
 			case "+": {
 				this.#addToken(TOKENS.PLUS);
 				break;
 			}
-
 			case ";": {
 				this.#addToken(TOKENS.SEMICOLON);
 				break;
 			}
-
 			case "*": {
 				this.#addToken(TOKENS.STAR);
 				break;
@@ -335,10 +238,10 @@ class Scanner {
 				break;
 			}
 			default: {
-				if (this.#is_digit(c)) {
+				if (is_digit(c)) {
 					this.#get_number();
 					break;
-				} else if (this.#is_alpha(c)) {
+				} else if (is_alphabet(c)) {
 					this.#get_reserved_keyword();
 				} else {
 					this.#errors.push({
@@ -352,29 +255,9 @@ class Scanner {
 	}
 
 	scanner() {
-		while (!this.#isAtEnd()) {
+		while (!this.#is_at_end()) {
 			this.#scanToken();
 			this.#start = this.#current;
 		}
 	}
 }
-
-const x = new Scanner(`
-+
-+-=>=
-// some comment 33
-33
-"123456dd  f dfd f dfd 
-fd fd df dfd f" Or orchid12 323.++
-  &345.456.234
-+
--09.87
-printf "hello world"
-print hello""
-fun sum_numbers (a,b){
-  return a + b;
-}
-`);
-x.scanner();
-x.logTokens();
-x.logErrors();
