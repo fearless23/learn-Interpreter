@@ -4,7 +4,9 @@
   "description": "",
   "scripts": {
     "start": "ts-node --esm src/lox/index.ts",
-    "bun": "bun run src/lox/index.ts"
+    "bun": "bun run src/lox/index.ts",
+    "lint": "rome check .",
+    "format": "rome format . --write"
   },
   "keywords": [],
   "author": "",
