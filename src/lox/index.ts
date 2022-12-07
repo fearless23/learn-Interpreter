@@ -17,7 +17,9 @@ fun sum_numbers (a,b){
 }
 `;
 
-const x = new Scanner(text);
-x.scanner();
-x.logTokens();
-x.logErrors();
+const scanner = new Scanner(text);
+const { tokens, errors } = scanner.run();
+console.info("------- tokens -------");
+console.info(tokens);
+console.info("------- errors -------");
+console.info(errors);

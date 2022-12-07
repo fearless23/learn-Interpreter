@@ -17,17 +17,6 @@ export class Scanner {
 		this.#src = src;
 	}
 
-	logTokens(): void {
-		console.log(
-			this.#tokens.map((i) => i.token),
-			"--TOKENS--",
-		);
-	}
-
-	logErrors(): void {
-		console.log(this.#errors, "--ERRORS--");
-	}
-
 	#is_at_end() {
 		return this.#current >= this.#src.length;
 	}
@@ -254,10 +243,18 @@ export class Scanner {
 		}
 	}
 
-	scanner() {
+	#scanner() {
 		while (!this.#is_at_end()) {
 			this.#scanToken();
 			this.#start = this.#current;
 		}
+	}
+
+	run(): { tokens: IToken[]; errors: IError[] } {
+		this.#scanner();
+		return {
+			tokens: this.#tokens.map((i) => i.token),
+			errors: this.#errors,
+		};
 	}
 }
