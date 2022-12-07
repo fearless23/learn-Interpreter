@@ -6,8 +6,9 @@
     "editor.defaultFormatter": "rome.rome"
   },
   "editor.codeActionsOnSave": {
+    // "source.organizeImports.rome": true,
     "source.fixAll": true
   },
   "editor.formatOnSave": true,
-  "editor.defaultFormatter": "rome.rome",
+  "editor.defaultFormatter": "rome.rome"
 }
